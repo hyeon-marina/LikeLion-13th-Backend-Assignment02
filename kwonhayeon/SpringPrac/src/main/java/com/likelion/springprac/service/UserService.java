@@ -7,40 +7,55 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-// 비즈니스 로직을 처리하는 계층
-// Spring에 알려주는 어노테이션
-@Service
+@Service // Spring이 이 클래스를 서비스(비즈니스 로직 처리)로 인식하게 함
 public class UserService {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    // 생성자를 통해 Repository를 주입함 (Spring이 자동으로 연결해줌)
+    // 생성자 주입
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    // 사용자 등록
+    // Create - 사용자 등록
+    // 이미 동일한 이메일이 존재할 경우 예외 발생
     public User createUser(User user) {
+        // 이메일 중복 체크
+        boolean isEmailDuplicate = userRepository.findAll().stream()
+                .anyMatch(u -> u.getEmail().equals(user.getEmail()));
+
+        if (isEmailDuplicate) {
+            throw new IllegalArgumentException("이미 존재하는 이메일입니다: " + user.getEmail());
+        }
+
         return userRepository.save(user);
     }
 
-    // 전체 사용자 조회
+    // Read - 전체 사용자 조회
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    //ID로 사용자 조회
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    // Read - ID로 특정 사용자 조회
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 사용자를 찾을 수 없습니다: " + id));
     }
 
-    // 사용자 정보 수정
+    // Update - 사용자 정보 수정
     public User updateUser(Long id, User updateUser) {
-        return userRepository.update(id, updateUser);
+        // 예외 발생 처리 포함
+        User user = getUserById(id); // 존재하지 않으면 예외 발생
+        user.setName(updateUser.getName());
+        user.setEmail(updateUser.getEmail());
+        return user;
     }
 
-    // 사용자 삭제
-    public boolean deleteUser(Long id) {
-        return userRepository.delete(id);
+    // Delete - 사용자 삭제
+    public void deleteUser(Long id) {
+        boolean deleted = userRepository.delete(id);
+        if (!deleted) {
+            throw new IllegalArgumentException("해당 ID의 사용자를 삭제할 수 없습니다: " + id);
+        }
     }
 }

@@ -1,15 +1,22 @@
 package com.likelion.springprac.domain;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data // getter, setter, toString 등 자동 생성
-@AllArgsConstructor // 모든 필드를 받는 생성자
-@NoArgsConstructor // 기본 생성자
-
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
 public class User {
+    @Id // 해당 필드가 기본 키임을 명시함
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // 자동 증가 설정
     private Long id;
+
     private String name;
     private String email;
 }
